@@ -16,8 +16,7 @@ InputParameterBody.json File:
 - LocalAdminAccount (string)
 - LocalAdminPassword (string)
 - ServerOwner (string)
-- ParameterXY (string)
-- secondNetwork (boolean)
+- numberOfNic (number)
 - secondDisk (boolean)
 
 com.API-InputWorkflow Workflowpackage contains VMware Orchestrator API-InputWorkflow with input values from above.

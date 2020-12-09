@@ -2,8 +2,17 @@
 ######################## REST CALL to Execute vRo Workflow with input Parameters #########################
 ##########################################################################################################
 # PS Version: 5.1.18362.1171 - Orchestrator v8.2
-# Julian Wendland - Söldner Consult GmbH (07.12.2020)
-#
+# Julian Wendland - Söldner Consult GmbH (09.12.2020)
+# Parameters:
+Param(
+    [string]$usr = 'vdi\julian',
+    [string]$pwd = 'Sc.?123!',
+    [string]$vroServer = 'vro8.vdi.sclabs.net', # in format FQDN:PORT
+    [string]$wfid = 'b3549a47-25ac-462e-991a-6935f0aa6e12',
+    [string]$apiFormat = 'json', # either xml or json
+    [string]$inputFile = 'c:\InputParameterBody.json'# path to input file (either json or xml)
+)
+
 # About endpoint
 $about = Invoke-RestMethod -Method GET -Uri https://vro8.vdi.sclabs.net:443/vco/api/about
 # $about
@@ -14,24 +23,6 @@ $apidocs = Invoke-RestMethod -Method GET -Uri https://vro8.vdi.sclabs.net/vco/ap
 $endpoints = Invoke-RestMethod -Method GET -Uri https://vro8.vdi.sclabs.net/vco/api/
 # $endpoints.service
 
-
-Function Execute-vRoWorkflows{
-
-[CmdletBinding()]
-param (
-[Parameter(Position=0,mandatory=$true)]
-[String]$username,
-[Parameter(Position=1,mandatory=$true)]
-[String]$password,
-[Parameter(Position=2,mandatory=$true)]
-[String]$vroServer,
-[Parameter(Position=3,mandatory=$true,HelpMessage="Workflow ID from General tab in editor Mode")]
-[String]$WorkflowID,
-[Parameter(Position=4,mandatory=$true)]
-[String]$apiFormat,
-[Parameter(Position=5,mandatory=$true,HelpMessage="path to input file (either json or xml)")]
-[String]$inputParameters  
-)
 
 #---------------Disable Certificate checking (easier in Powershell 6.0) ----------------
 # If necessary we can add a certificate to make this section redundant.
@@ -52,7 +43,7 @@ add-type @"
 [System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-#------------------------- Get a session token ------------------------------------
+#-------------------------Get a session token ------------------------------------
 # The development version of this:
 
 Write-Host -ForegroundColor Red "#-------------------------Get a session token ------------------------------------"
@@ -64,13 +55,14 @@ function ConvertTo-Base64($string) {
    return $encoded;
 }
  
-$token = ConvertTo-Base64("$($username):$($pwd)")
+$token = ConvertTo-Base64("$($usr):$($pwd)")
 Write-Host -ForegroundColor Green "Using Token: $token"
 
 $auth = "Basic $($token)"
 Write-Host -ForegroundColor Green "Using Auth: $auth"
  
 $headers = @{"Authorization"=$auth;"Content-Type"="application/$($apiFormat)";"Accept"="application/$($apiFormat)"}
+Write-Host -ForegroundColor Green "Using Headers: $headers"
 
 
 #----------------------Get input Parameters from json Path ----------------------
@@ -78,18 +70,18 @@ $headers = @{"Authorization"=$auth;"Content-Type"="application/$($apiFormat)";"A
 
 Write-Host -ForegroundColor Red "#----------------------Get input Parameters from json Path ----------------------"
 
-$jsonBody = Get-Content $inputParameters -Raw
+$jsonBody = Get-Content $inputFile -Raw
 Write-Host -ForegroundColor Green "Using body: " + $jsonBody
 
-$URL = "https://$($vroServer)/vco/api/workflows/$($WorkflowID)/executions"
-Write-Host -ForegroundColor Green "Using URL: $URL"
+$URL = "https://$($vroServer)/vco/api/workflows/$($wfid)/executions"
+Write-Host -ForegroundColor Green $URL
 
 try{
     $result = Invoke-WebRequest -Method Post -uri $URL -Headers $headers -body $jsonBody
     $headers = $result.Headers
 }catch{
     
-    Write-Host -ForegroundColor Red ("ERROR: `t Executing Workflow with ID: $($WorkflowID) ("+$_.Exception+")")
+    Write-Host -ForegroundColor Red ("ERROR: `t Executing Workflow with ID: $($wfid) ("+$_.Exception+")")
 }
 
 
@@ -102,14 +94,10 @@ ForEach ($header in $headers){
 }
 
 
-
-}
-
-
 #---------------------- Function to call vRo Get Request ----------------------
 # Function to request Get vRo Rest API 
 
-function Get-vRoRestAPI([string]$username, [string]$password, [string]$url) {
+function Get-vRoRestCall([string]$username, [string]$password, [string]$url) {
  
   # Create a username:password pair
   $credPair = "$($username):$($password)"
@@ -129,17 +117,10 @@ function Get-vRoRestAPI([string]$username, [string]$password, [string]$url) {
 
 #---------------------- Get Input Params from Workflow ----------------------
 # Get input Parameters from Workflow:
-$cred = (Get-Credential vdi\julian)
-$WorkflowID = "b3549a47-25ac-462e-991a-6935f0aa6e12"
-$url = "https://vro8.vdi.sclabs.net/vco/api/workflows/$($WorkflowID)/"
 
-$result = Get-vRoRestAPI -username $cred.UserName -password $cred.GetNetworkCredential().Password -url $url
+$result = Get-vRoRestCall -username $usr -password $pwd -url "https://vro8.vdi.sclabs.net/vco/api/workflows/$($wfid)/"
 $dataToDict = $result | ConvertFrom-Json
 
 $inputParams = $dataToDict.'input-parameters'
-Write-Host -ForegroundColor Green "#---------------------- Input Parameter from this Worflow: $WorkflowID"
+Write-Host -ForegroundColor Green "#---------------------- Input Parameter from this Worflow: $wfid"
 $inputParams
-
-#---------------------- Start Workflow ----------------------
-# Start Workflow
-Execute-vRoWorkflows -username $cred.UserName -password $cred.Password -vroServer vro8.vdi.sclabs.net -WorkflowID b3549a47-25ac-462e-991a-6935f0aa6e12  -inputParameters C:\Users\JW\Desktop\vRO-API\InputParameterBody.json -apiFormat json 

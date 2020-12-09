@@ -6,7 +6,7 @@
 # Parameters:
 Param(
     [string]$usr = 'vdi\julian',
-    [string]$pwd = 'Sc.?123!',
+    [string]$pwd = 'VMware1!',
     [string]$vroServer = 'vro8.vdi.sclabs.net', # in format FQDN:PORT
     [string]$wfid = 'b3549a47-25ac-462e-991a-6935f0aa6e12',
     [string]$apiFormat = 'json', # either xml or json

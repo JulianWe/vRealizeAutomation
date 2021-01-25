@@ -35,5 +35,7 @@ Package: https://github.com/JulianWe/vRealizeAutomation/blob/main/com.sunrise.An
 
 # Day Two Operations
 + added some functionality to the PowerShell script regarding day two operations
-[] Test []
-- Test -
++ change CPU count
++ change memory size
+- add disk space
+

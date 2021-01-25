@@ -1,3 +1,7 @@
+
+# vRealizeAutomation
+reusable automation items
+
 # PowerShell script to execute Orchestrator workflow via REST API
 
 PowerShell Script to show the input parameter and Execute Orchestrator Workflow via REST API. 
@@ -20,4 +24,9 @@ InputParameterBody.json File:
 - secondDisk (boolean)
 
 com.API-InputWorkflow Workflowpackage contains VMware Orchestrator API-InputWorkflow with input values from above.
+
+# Orchestrator Package to use vCenter Tags in scriptable Task
+
+
+# 
 

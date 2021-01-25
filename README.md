@@ -25,8 +25,17 @@ InputParameterBody.json File:
 
 com.API-InputWorkflow Workflowpackage contains VMware Orchestrator API-InputWorkflow with input values from above.
 
-# Orchestrator Package to use vCenter Tags in scriptable Task
+# How to use vCenter tags in VMware Orchestrator
 
 
-# 
+# How to execute Ansible Playbook with VMware Orchestrator SSH Plugin
++ how to set backup IP on correct network Interface with Guest Script Manager
+Package: https://github.com/JulianWe/vRealizeAutomation/blob/main/com.sunrise.AnsiblePlaybook.Backupip.package
+
+
+# Day Two Operations
++ added some functionality to the PowerShell script regarding day two operations
++ change CPU count
++ change memory size
+- add disk space
 

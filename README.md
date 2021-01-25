@@ -28,6 +28,8 @@ com.API-InputWorkflow Workflowpackage contains VMware Orchestrator API-InputWork
 # Orchestrator Package to use vCenter Tags in scriptable Task
 
 
-# How to execute Ansible Playbook with VMware Orchestrator SSH Plugin 
-Package: 
+# How to execute Ansible Playbook with VMware Orchestrator SSH Plugin
++ how to set backup IP on correct network Interface with Guest Script Manager
+Package: https://github.com/JulianWe/vRealizeAutomation/blob/main/com.sunrise.AnsiblePlaybook.Backupip.package
+
 

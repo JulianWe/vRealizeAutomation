@@ -10,7 +10,8 @@ Param(
     [string]$vroServer = 'vro8.vdi.sclabs.net', # in format FQDN:PORT
     [string]$wfid = 'b3549a47-25ac-462e-991a-6935f0aa6e12',
     [string]$apiFormat = 'json', # either xml or json
-    [string]$inputFile = 'c:\InputParameterBody.json'# path to input file (either json or xml)
+    [string]$inputFile = 'c:\InputParameterBody.json',# path to input file (either json or xml)
+    [boolean]$dayTwoOperation = $true
 )
 
 # About endpoint
@@ -22,6 +23,23 @@ $apidocs = Invoke-RestMethod -Method GET -Uri https://vro8.vdi.sclabs.net/vco/ap
 # API Docs
 $endpoints = Invoke-RestMethod -Method GET -Uri https://vro8.vdi.sclabs.net/vco/api/
 # $endpoints.service
+
+
+
+#--------------- Check if DayTwoOperation is set to True ----------------
+Write-Host -ForegroundColor Red "#--------------- Check if DayTwoOperation is set to True ----------------"
+
+if($dayTwoOperation = $true){
+
+    $inputFile = 'c:\DayTwoInpurtParameterBody.json'
+    $wfid = 'e5fafd07-fc49-462e-8db0-e5b4367c4e2e'
+
+}else{
+
+    $inputFile = 'c:\InputParameterBody.json'
+    $wfid = 'b3549a47-25ac-462e-991a-6935f0aa6e12'
+}
+
 
 
 #---------------Disable Certificate checking (easier in Powershell 6.0) ----------------

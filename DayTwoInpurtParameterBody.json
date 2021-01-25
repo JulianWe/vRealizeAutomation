@@ -1,0 +1,44 @@
+{
+  "parameters": [
+    {
+      "name": "vmName",
+      "scope": "local",
+      "type": "string",
+      "value": {
+        "string": {
+          "value": "SunriseServer"
+        }
+      }
+    },
+    {
+      "name": "newSize",
+      "scope": "local",
+      "type": "number",
+      "value": {
+        "number": {
+          "value": "32"
+        }
+      }
+    },
+    {
+      "name": "vcpu",
+      "scope": "local",
+      "type": "number",
+      "value": {
+        "number": {
+          "value": "4"
+        }
+      }
+    },
+    {
+      "name": "memory",
+      "scope": "local",
+      "type": "number",
+      "value": {
+        "number": {
+          "value": "8"
+        }
+      }
+    }
+  ]
+}

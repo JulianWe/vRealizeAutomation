@@ -1,0 +1,275 @@
+# author:
+#   - 'Marc Wappler (D060655)'
+#
+# examples:
+#   - 'ansible-playbook -i "netbox vpod av qa-de-1a" playbook/vmware/vmware_vcsa_cert_mgmt.yml --vault-id vmware@prompt --vault-id ad@prompt'
+
+---
+- hosts: vcenters
+  remote_user: root
+  gather_facts: False
+  vars_files:
+    - "{{ playbook_dir }}/../../vault/vmware.yml"
+    - "{{ playbook_dir }}/../../vault/ad.yml"
+  vars:
+    site: "{{ inventory_hostname.split('.')[2] | lower }}"
+    domain: "{{ inventory_hostname | adsite('fqdn') }}"
+    digicert_url: https://cacerts.digicert.com/
+    root_ca_file: DigiCertGlobalRootCA.crt
+    interm_ca_file: DigiCertSHA2SecureServerCA.crt
+    snapshot: ansible_vcsa_certificate_change
+    datacenter: "{{ hostvars[inventory_hostname]['datacenter'] }}"
+    files:
+      - "{{ inventory_hostname }}.pem"
+      - "{{ inventory_hostname }}-key.pem"
+    ansible_ssh_pass: "{{ users['vcenter']['ssh_run_password'] }}"
+
+# CHECK
+  tasks:
+    - name: create vcsa snapshot before certificate change action
+      vmware_guest_snapshot:
+        hostname: "{{ inventory_hostname }}"
+        username: "{{ compute[domain]['username'] }}@{{ domain }}"
+        password: "{{ compute[domain]['password'] }}"
+        validate_certs: no
+        datacenter: "{{ datacenter }}"
+        folder: "/{{ datacenter }}/vm/"
+        name: "{{ inventory_hostname }}"
+        state: present
+        snapshot_name: "{{ snapshot }}"
+        description: "change machine SSL/TLS certificates for {{ inventory_hostname }} - ansible automation"
+      delegate_to: 127.0.0.1
+
+# CHECK
+    - name: get root ca certificates from digicert
+      get_url:
+        url: "{{ digicert_url }}{{ item }}"
+        dest: /tmp/
+        timeout: 20
+        validate_certs: yes
+      loop:
+        - "{{ root_ca_file }}"
+        - "{{ interm_ca_file }}"
+      delegate_to: 127.0.0.1
+
+# CHECK
+    - name: convert root ca certificates from crt to pem format
+      shell: "openssl x509 -inform der -outform pem -in {{ item }} -out {{ item.split('.')[0] }}.pem"
+      args:
+        chdir: /tmp/
+      loop:
+        - "{{ interm_ca_file }}"
+        - "{{ root_ca_file }}"
+      register: openssl_results
+      delegate_to: 127.0.0.1
+
+# CHECK
+    - name: check if certificate conversion was successful
+      fail:
+        msg: "RC: {{ item.rc }} ({{ item.cmd }})"
+      when: item.rc != 0
+      loop: "{{ openssl_results.results }}"
+
+# CHECK
+    - name: get server certificate from GitHub
+      github_files:
+        action: get_file
+        repo: cc/secrets
+        file_path: "{{ site }}/certificates/{{ item }}"
+        github_server: github.wdf.sap.corp
+        user: "{{ users['security_patching']['username'] }}"
+        token: "{{ users['security_patching']['token'] }}"
+      register: cert_files
+      loop: "{{ files }}"
+      delegate_to: 127.0.0.1
+
+    - name: copy vcsa server certificate to appliance
+      copy:
+        content: "{{ item.file_content | b64decode }}"
+        dest: "/tmp/{{ item.item }}"
+      loop: "{{ cert_files.results }}"
+
+    - name: copy root ca certificates to appliance
+      copy:
+        src: "/tmp/{{ item }}"
+        dest: "/tmp/{{ item }}"
+      loop:
+        - "{{ interm_ca_file.split('.')[0] }}.pem"
+        - "{{ root_ca_file.split('.')[0] }}.pem"
+
+    - name: stop all vcsa services and start services required for cert exchange
+      shell: "{{ item }}"
+      args:
+        executable: /usr/bin/bash
+      loop:
+        - service-control --stop --all
+        - service-control --start vmafdd
+        - service-control --start vmdird
+        - service-control --start vmcad
+      register: stop_op
+      async: 1800
+      poll: 5
+
+    - name: services successfully stopped?
+      fail:
+        msg: "RC: {{ item.rc }} ({{ item.cmd }})"
+      when: item.rc != 0
+      loop: "{{ stop_op.results }}"
+
+    # Import Certificates in v7.0 via REST API instead of dir-cli command
+    - name: import root ca certificates
+      shell: "/usr/lib/vmware-vmafd/bin/dir-cli trustedcert publish --cert /tmp/{{ item }} --password {{ users['vcenter']['run_password'] }}"
+      args:
+        chdir: /usr/lib/vmware-vmafd/bin/
+        executable: /usr/bin/bash
+      no_log: True
+      loop:
+        - "{{ root_ca_file.split('.')[0] }}.pem"
+        - "{{ interm_ca_file.split('.')[0] }}.pem"
+
+###
+- hosts: localhost
+  connection: local
+  tasks:
+
+  - name: Including Secret Environment Items
+    include_vars:
+      file: secrets.yml
+      name: secret
+
+  - name: vCenter Login
+    uri:
+      url: "https://{{secret.vcenter}}/rest/com/vmware/cis/session"
+      force_basic_auth: yes
+      method: POST
+      user: "{{secret.username}}"
+      password: "{{secret.password}}"
+      status_code: 200
+      validate_certs: no
+    register: login
+
+  - name: get Cert Chain
+    uri:
+      url: "https://{{secret.vcenter}}/rest/vcenter/certificate-management/vcenter/trusted-root-chains"
+      method: GET
+      validate_certs: no
+      headers:
+        Cookie: "{{login.set_cookie}}"
+
+  - name: get certificate
+    uri:
+      url: "https://{{secret.vcenter}}/rest/vcenter/certificate-management/vcenter/trusted-root-chains/BD0AFF1F71A9FBEB78DC8B54325DD872BB0F6F2B"
+      method: GET
+      validate_certs: no
+      headers:
+        Cookie: "{{login.set_cookie}}"
+    register: cert
+
+#  - name: Renews the TLS certificate for the given duration period.
+#    uri:
+#      url:  "https://{{secret.vcenter}}/rest/vcenter/certificate-management/vcenter/tls?action=renew"
+#      method: POST
+#      validate_certs: no
+#      body_format: json
+#      body: "{{ lookup('file','body.json') }}"
+#      headers:
+#        Cookie: "{{login.set_cookie}}"
+
+  - name: Creates a new trusted root certificate chain from the CreateSpec.
+    uri:
+      url: "https://{{secret.vcenter}}/rest/vcenter/certificate-management/vcenter/trusted-root-chains"
+      method: POST
+      validate_certs: no
+      body_format: json
+      body: "{{ lookup('file','certBody.json') }}"
+      headers:
+        Cookie: "{{login.set_cookie}}"
+
+  - name: Replace Root Certificate with VMCA signed one using the given Spec.
+    uri:
+      url:  "https://{{secret.vcenter}}/rest/vcenter/certificate-management/vcenter/vmca-root"
+      method: POST
+      validate_certs: no
+      body_format: json
+      body: "{{ lookup('file','certBody.json') }}"
+      headers:
+        Cookie: "{{login.set_cookie}}"
+
+    # Import cert via REST:
+    - name: Import root ca Certificates via REST API
+      uri:  
+        url: "https://vc-1.vdi.sclabs.net/rest/vcenter/certificate-management/vcenter/vmca-root"
+        method: POST
+      register: rest_post
+      vars:
+        rescource_path: 
+      
+  
+    - name: force vecs-cli vmdir refresh
+      shell: "./vecs-cli force-refresh"
+      args:
+        chdir: /usr/lib/vmware-vmafd/bin/
+        executable: /usr/bin/bash
+
+    - name: wait 180 sec for services to acknowledge cert store changes
+      wait_for:
+        timeout: 180
+
+    - name: delete old machine ssl certificate store
+      shell: ./vecs-cli entry delete --store MACHINE_SSL_CERT --alias __MACHINE_CERT -y
+      args:
+        executable: /usr/bin/bash
+        chdir: /usr/lib/vmware-vmafd/bin/
+
+    - name: apply new machine ssl certificate and recreate store
+      shell: "./vecs-cli entry create --store MACHINE_SSL_CERT --alias __MACHINE_CERT --cert /tmp/{{ files[0] }} --key /tmp/{{ files[1] }}"
+      args:
+        executable: /usr/bin/bash
+        chdir: /usr/lib/vmware-vmafd/bin/
+
+    - name: wait 180 sec for services to acknowledge cert store changes
+      wait_for:
+        timeout: 180
+
+      # Restart Services 
+    - name: restart vcsa services
+      command: service-control --start --all
+      async: 1800
+      poll: 20
+
+    - name: restart vami service to apply new cert
+      command: systemctl restart vami-lighttp
+      async: 180
+      poll: 5
+
+    - import_tasks: tasks/vmware_vcsa_cert_mgmt_ls.yml
+      vars:
+        lookup_url: http://localhost:7080/lookupservice/sdk
+        datacenter: "{{ datacenter }}"
+
+    - name: 240 sec delay for service check
+      wait_for:
+        timeout: 240
+
+    - name: test services and remove snapshot
+      block:
+        - include_tasks: tasks/vmware_vcsa_vmon_health.yml
+          vars:
+            vcenter: "{{ inventory_hostname }}"
+            user: "{{ compute[ domain ]['username'] }}@{{ domain }}"
+            password: "{{ compute[ domain ]['password'] }}"
+            service_check: # list vmon services to check
+              - vsphere-ui
+              - vpxd
+
+        - name: remove vcsa snapshot to cleanup
+          vmware_guest_snapshot:
+            hostname: "{{ inventory_hostname }}"
+            username: "{{ compute[ domain ]['username'] }}@{{ domain }}"
+            password: "{{ compute[ domain ]['password'] }}"
+            datacenter: "{{ datacenter }}"
+            folder: "/{{ datacenter }}/vm/"
+            name: "{{ inventory_hostname }}"
+            snapshot_name: "{{ snapshot }}"
+            state: absent
+          delegate_to: 127.0.0.1

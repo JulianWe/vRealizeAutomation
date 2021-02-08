@@ -1,0 +1,23 @@
+---
+- hosts:
+    - localhost
+  name: Send E-Mail to the course participants
+  tasks:
+    - name: Include vault for credentials
+      include_vars: 
+        file: credentials.yml
+        name: credentials
+
+    - name: Send e-Mail
+      mail:
+        host: smtp-mail.outlook.com
+        port: 587
+        username: "{{ credentials.username }}" 
+        password: "{{ credentials.password }}"
+        from: sclabs@soeldner-consult.de
+        subject: SCLabs-Zugänge
+        body: "Hallo!\n\nIn folgender Mail finden Sie alle wichtigen
+   Informationen zu den Übungslaboren![…]"
+        to: "{{ email }}"
+        attach: /etc/ansible/Kurs-Zugangsdaten.docx
+      delegate_to: localhost

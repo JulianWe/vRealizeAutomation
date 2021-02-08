@@ -12,7 +12,8 @@ reusable automation items
 
 # vRoPackages
 - com.sunrise.installWindowsFeature.package
-
+- com.sunrise.AnsiblePlaybook.Backupip.package
+- sunrise.tagging.package
 
 # vRoAnsible
 - sattelite Ansible Role

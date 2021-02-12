@@ -1,0 +1,27 @@
+{
+  "vmName": "p-rator-as-01",
+  "vmDescription": "Production rator application server 1",
+  "OS": "RHEL_7_64",
+  "OSMonitoring": "Nagios",
+  "Env": "PROD",
+  "Location": "GEN_01",
+  "vCPUs": 4,
+  "memory": 4,
+  "storageType": "STD",
+  "DiskPart": "/ (root) - 16 GB (disk 01), /home - 8 GB (disk 01), /var - 8 GB (disk 01), /opt - none (part of root), /data - none (part of root), /tmp - 4 GB (disk 01), swap: - 16 GB (disk 01)",
+  "nicSettings": [
+    [ “10.192.146.0-24_vl3646”,"10.192.146.242", "/24", " 10.192.146.1","Default", "p-rator-as-01.swi.srse.net" ]
+  ],
+  "dataDisks": [
+    {
+      "diskSizeGB": 60
+    }
+  ],
+  "Authetication": "AD",
+  "AuthGroupUsers": [
+    "SWI\ridge", "SWI\t_unix_rator_dev","SWI\t_unix_rator_mgmt"
+  ],
+  "LocalAccounts": [
+    { "Account": "rator", "Group": "", "Description": ""  }
+  ]
+}

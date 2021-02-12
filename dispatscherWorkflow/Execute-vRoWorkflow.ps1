@@ -9,7 +9,7 @@ Param(
     [string]$pwd = 'VMware1!',
     [string]$vroServer = 'vro8.vdi.sclabs.net', # in format FQDN:PORT
     [string]$wfid = 'b3549a47-25ac-462e-991a-6935f0aa6e12',
-    [string]$apiFormat = 'json', # either xml or json
+    [string]$apiFormat = 'xml', # either xml or json
     [string]$inputFile = 'c:\InputParameterBody.json',# path to input file (either json or xml)
     [boolean]$dayTwoOperation = $true
 )
@@ -132,6 +132,28 @@ function Get-vRoRestCall([string]$username, [string]$password, [string]$url) {
   return $responseData
 }
 
+
+
+#---------------------- Function to call vRo Get Request with XML ----------------------
+# Function to request Get xml vRo Rest API 
+
+function Get-vRoXMLRestCall([string]$username, [string]$password, [string]$url) {
+ 
+  # Create a username:password pair
+  $credPair = "$($username):$($password)"
+ 
+  # Encode the pair to Base64 string
+  $encodedCredentials = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($credPair))
+ 
+  # Form the header and add the Authorization attribute to it
+  #$headers = @{ Authorization = "Basic $encodedCredentials" }
+  $headers = @{"Authorization"=$auth;"Content-Type"="application/$($apiFormat)";"Accept"="application/$($apiFormat)"}
+ 
+  # Make the GET request
+  $responseData = Invoke-WebRequest -Uri $url -Method Get -Headers $headers -UseBasicParsing
+ 
+  return $responseData
+}
 
 #---------------------- Get Input Params from Workflow ----------------------
 # Get input Parameters from Workflow:

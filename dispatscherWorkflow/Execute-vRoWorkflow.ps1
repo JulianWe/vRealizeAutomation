@@ -6,12 +6,12 @@
 # Parameters:
 Param(
     [string]$usr = 'vdi\julian',
-    [string]$pwd = 'XXX',
+    [string]$pwd = 'Sc.?123!',
     [string]$vroServer = 'vro8.vdi.sclabs.net', # in format FQDN:PORT
     [string]$wfid = 'b3549a47-25ac-462e-991a-6935f0aa6e12',
     [string]$apiFormat = 'xml', # either xml or json
-    [string]$inputFile = 'c:\InputParameterBody.xml',# path to input file (either json or xml)
-    [boolean]$dayTwoOperation = $true
+    [string]$inputFile = 'C:\Users\JW\Documents\GitHub\vRealizeAutomation\dispatscherWorkflow\InputParameterBody.xml',# path to input file (either json or xml)
+    [boolean]$dayTwoOperation = $false
 )
 
 # About endpoint
@@ -34,9 +34,10 @@ if($dayTwoOperation = $true){
     $inputFile = 'c:\DayTwoInpurtParameterBody.json'
     $wfid = 'e5fafd07-fc49-462e-8db0-e5b4367c4e2e'
 
+
 }else{
 
-    $inputFile = 'c:\InputParameterBody.json'
+    $inputFile = 'C:\Users\JW\Documents\GitHub\vRealizeAutomation\dispatscherWorkflow\InputParameterBody.xml'
     $wfid = 'b3549a47-25ac-462e-991a-6935f0aa6e12'
 }
 

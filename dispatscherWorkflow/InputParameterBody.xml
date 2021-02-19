@@ -1,89 +1,28 @@
-<?xml version="1.0"?>
-<WsWorkflowExecution>
-  <businessState>string</businessState>
-  <contentException>string</contentException>
-  <currentItemDisplayName>string</currentItemDisplayName>
-  <currentItemForDisplay>string</currentItemForDisplay>
-  <endDate>1970-01-01T00:00:00.001Z</endDate>
-  <!-- invalid XML -->
-  <!-- invalid XML -->
-  <href>string</href>
-  <id>string</id>
-  <inputParameters>
-    <description>string</description>
-    <encryptValue>true</encryptValue>
-    <name>string</name>
-    <scope>local</scope>
-    <type>string</type>
-    <updated>true</updated>
-    <value>
-      <objectType>string</objectType>
-    </value>
-  </inputParameters>
-  <name>string</name>
-  <outputParameters>
-    <description>string</description>
-    <encryptValue>true</encryptValue>
-    <name>string</name>
-    <scope>local</scope>
-    <type>string</type>
-    <updated>true</updated>
-    <value>
-      <objectType>string</objectType>
-    </value>
-  </outputParameters>
-  <relations>
-    <count>1</count>
-    <links>
-      <attributes>
-        <displayValue>string</displayValue>
-        <name>string</name>
-        <value>string</value>
-      </attributes>
-      <href>string</href>
-      <rel>string</rel>
-      <type>string</type>
-    </links>
-    <startIndex>1</startIndex>
-  </relations>
-  <startDate>1970-01-01T00:00:00.001Z</startDate>
-  <startedBy>string</startedBy>
-  <state>canceled</state>
-  <statistic>
-    <activities>
-      <activities>
-        <!-- Infinite loop $ref:WsActivityStatistics -->
-      </activities>
-      <id>string</id>
-      <maxTime>1</maxTime>
-      <numberOfExecutions>1</numberOfExecutions>
-      <numberOfTransitions>1</numberOfTransitions>
-      <totalTime>1</totalTime>
-    </activities>
-    <id>string</id>
-    <numberOfTransitions>1</numberOfTransitions>
-    <plugins>
-      <numberOfExecutions>1</numberOfExecutions>
-      <pluginName>string</pluginName>
-      <totalTime>1</totalTime>
-    </plugins>
-    <tokenBlocked>1</tokenBlocked>
-    <tokenSize>1</tokenSize>
-    <tokenSystem>1</tokenSystem>
-    <tokenUser>1</tokenUser>
-    <tokenWait>1</tokenWait>
-    <totalNumberOfTransitions>1</totalNumberOfTransitions>
-    <totalTime>1</totalTime>
-  </statistic>
-  <workflowAttributes>
-    <description>string</description>
-    <encryptValue>true</encryptValue>
-    <name>string</name>
-    <scope>local</scope>
-    <type>string</type>
-    <updated>true</updated>
-    <value>
-      <objectType>string</objectType>
-    </value>
-  </workflowAttributes>
-</WsWorkflowExecution>
+﻿<execution-context xmlns="http://www.vmware.com/vco">
+  <parameters>
+    <parameter type="string" name="LocalAdminAccount" scope="local">
+      <string>Administrator</string>
+    </parameter>
+    <parameter type="string" name="LocalAdminPassword" scope="local">
+      <string>VMware1!</string>
+    </parameter>
+    <parameter type="string" name="OperatingSystem" scope="local">
+      <string>Windows</string>
+    </parameter>
+    <parameter type="string" name="ServerOwner" scope="local">
+      <string>Julian</string>
+    </parameter>
+    <parameter type="number" name="numberOfNic" scope="local">
+      <number>2</number>
+    </parameter>
+    <parameter type="string" name="ServerName" scope="local">
+      <string>SunriseServer</string>
+    </parameter>
+    <parameter type="boolean" name="secondDisk" scope="local">
+      <boolean>true</boolean>
+    </parameter>
+    <parameter type="string" name="ServerIP" scope="local">
+      <number>10.0.20.101</number>
+    </parameter>
+  </parameters>
+</execution-context>

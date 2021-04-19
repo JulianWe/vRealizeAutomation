@@ -20,17 +20,6 @@ $apiFormat = 'xml'
 Add-Type -Path 'C:\Users\JW\Desktop\SDK\vsphere-ws\dotnet\bin\VMware-SDK-Management-SampleTemplate\bin\Debug\VMware.Binding.WsTrust.dll'
 Add-Type -Path 'C:\Users\JW\Desktop\SDK\vsphere-ws\dotnet\bin\VMware-SDK-Management-SampleTemplate\bin\Debug\STSService.dll'
 
-add-type @"
-    using System.Net;
-    using System.Security.Cryptography.X509Certificates;
-    public class TrustAllCertsPolicy : ICertificatePolicy {
-        public bool CheckValidationResult(
-            ServicePoint srvPoint, X509Certificate certificate,
-            WebRequest request, int certificateProblem) {
-            return true;
-        }
-    }
-"@
 
 
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12

@@ -31,8 +31,8 @@ add-type @"
         }
     }
 "@
- 
-[System.Net.ServicePointManager]::CertificatePolicy = New-Object TrustAllCertsPolicy
+
+
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 [VMware.Binding.WsTrust.SamlTokenHelper]::SetupServerCertificateValidation()
 
@@ -59,7 +59,8 @@ Function ConvertTo-GZipString () {
 $signingCertificate = New-Object System.Security.Cryptography.X509Certificates.X509Certificate2
 $signingCertificate.Import($certPath, $certPass, [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::MachineKeySet)
 
-$service = [VMware.Binding.WsTrust.SamlTokenHelper]::GetSTSService("$vcURL/sts/STSService", $username, $password, $signingCertificate) 
+$service = [VMware.Binding.WsTrust.SamlTokenHelper]::GetSTSService("$vcURL/sts/STSService/lab.local", $username, $password, $signingCertificate) 
+write-host -ForegroundColor Green "Auth URL: $vcURL/sts/STSService/lab.local"
 $token = [VMware.Binding.WsTrust.SamlTokenHelper]::GetHokRequestSecurityTokenType()
 $token.SignatureAlgorithm = [vmware.sso.SignatureAlgorithmEnum]::httpwwww3org200104xmldsigmorersasha256
 $response = $service.Issue($token)
